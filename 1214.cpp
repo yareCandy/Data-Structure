@@ -1,4 +1,4 @@
-//1214c.cpp
+//1214.cpp
 //OJ1214
 //实现孩子兄弟链的遍历
 //关键是根据无需节点创建一棵树
@@ -133,17 +133,17 @@ private:
         cout << a[t].dt << ' ';
         preOrder(a[t].son);
         preOrder(a[t].brother);
-        
+
     }
 
     void postOrder(int t)const
     {
         if (t == 0) return;
-        
+
         postOrder(a[t].son);
         cout << a[t].dt << ' ';
         postOrder(a[t].brother);
-        
+
     }
 
 };
