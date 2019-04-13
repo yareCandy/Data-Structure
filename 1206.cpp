@@ -1,6 +1,6 @@
 //OJ1206
 //检查pascal中 begin，end，if，then，else 是否匹配
-
+//begin之前可以出现if
 #include <iostream>
 #include <fstream>
 #include <cstring>
