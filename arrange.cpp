@@ -248,22 +248,12 @@ void arrage(int in[], int n, int k)//入轨序列，车箱数，空轨数
     }
 }
 
-//对应的main函数
-int main()
-{
-    int size, k;
-    cin >> size >> k;
-    int *queue = new int [size];
-    for (int i = 0; i < size; i++)
-        cin >> queue[i];
-    arrage(queue, size, k);
-
-    return 0;
-}
+//另外一种重排模型，转换站台是一个类似栈的区域，且有固定容量
+//可以选择从入轨上将车厢直接出轨，也可以从转换站台顶出轨
 
 #include <stack>
 
-int main()
+void Arrange()
 {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
