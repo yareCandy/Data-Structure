@@ -5,8 +5,52 @@
 //查找第i小的元素
 #include <iostream>
 #include <cstring>
-#include <stack>
+//#include <stack>
 using namespace std;
+
+template <class T>
+class linkStack
+{
+    private:
+        struct node
+        {
+            T data;
+            node *next;
+            node (const T &x, node *n = NULL):data(x), next(n){};
+            node():next(NULL){};
+        };
+
+        node *top_p;
+
+    public:
+        linkStack():top_p(NULL){};
+        ~linkStack()
+        {
+            node *p;
+            while(top_p != NULL)
+            {
+                p = top_p;
+                top_p = top_p ->next;
+                delete p;
+            }
+        }
+        T pop()
+        {
+            node *tmp = top_p;
+            T x = top_p -> data;
+            top_p = top_p -> next;
+            delete tmp;
+            return x;
+        }
+        void push(const T &x)
+        {
+            node *tmp = new node(x, top_p);
+            top_p = tmp;
+        }
+        T top()const{ return top_p -> data;}
+
+        bool isEmpty()const {return top_p == NULL;}
+};
 
 template <class KEY>
 class binarySearchTree
@@ -50,11 +94,23 @@ private:
 
 
 template<class KEY>
+void binarySearchTree<KEY>::pop(const KEY &d)
+{
+    pop(d ,root);
+}
+
+template <class KEY>
+void binarySearchTree<KEY>::push(const KEY &d)
+{
+    push(d, root);
+}
+
+template<class KEY>
 void binarySearchTree<KEY>::push(const KEY &d, node *&t)
 {
     if (t == nullptr)
-        t = new node (d);
-    if (d < t ->dt)
+        t = new node (d, nullptr, nullptr);
+    else if (d < t ->dt)
         push(d, t ->left);
     else
         push(d, t ->right);
@@ -63,8 +119,8 @@ void binarySearchTree<KEY>::push(const KEY &d, node *&t)
 template<class KEY>
 void binarySearchTree<KEY>::pop(const KEY &d, node *&t)
 {
-    if (t == nullptr)
-        return;
+    if (t == nullptr) return;
+
     if (d < t ->dt)
         pop(d, t ->left);
     else if (d > t ->dt)
@@ -77,30 +133,31 @@ void binarySearchTree<KEY>::pop(const KEY &d, node *&t)
             while (tmp ->left != nullptr)
                 tmp = tmp ->left;
             t ->dt = tmp ->dt;
-            pop(d, tmp);
+            pop(t ->dt, t ->right);//这里要求是继续对右子树进行删除操作，tmp已经不是指向t的右子树了
         }
         else
         {
             node *tmp = t;
-            t = (t ->left == nullptr) ? right : left;
+            t  =  (t ->left == nullptr) ? t ->right : t ->left;
             delete tmp;
         }
     }
 }
+
 
 template<class KEY>
 void binarySearchTree<KEY>::find(const KEY &d)const
 {
     if (root == nullptr) {cout << "N\n"; return;}
 
-    stack<node *> stack;
+    linkStack<node *> stack;
     stack.push(root);
     node *tmp;
 
-    while (!stack.empty())
+    while (!stack.isEmpty())
     {
-        tmp = stack.top();
-        stack.pop();
+        tmp = stack.pop();
+
         if (tmp == nullptr)
         {
             cout << "N\n";
@@ -119,8 +176,10 @@ void binarySearchTree<KEY>::find(const KEY &d)const
     }
     cout << "N\n";
     return;
+
 }
 
+//已排除
 template<class KEY>
 void binarySearchTree<KEY>::find_ith(int i)const
 {
@@ -130,17 +189,16 @@ void binarySearchTree<KEY>::find_ith(int i)const
     {
         node *t;
         int timePop;
-        Node (node *T = nullptr, int times = 0):t(T), timePop(times){}
+        Node (node *T = nullptr):t(T), timePop(0){}
     };
 
-    stack<Node> stack;
+    linkStack<Node> stack;
     Node current(root);
     stack.push(current);
 
-    while (!stack.empty())
+    while (!stack.isEmpty())
     {
-        current = stack.top();
-        stack.pop();
+        current = stack.pop();
 
         if (++current.timePop == 2)
         {
@@ -166,6 +224,13 @@ void binarySearchTree<KEY>::find_ith(int i)const
     return;
 }
 
+
+template<class KEY>
+void binarySearchTree<KEY>::delete_less_than(const KEY &d)
+{
+    delete_less_than(d, root);
+}
+
 template<class KEY>
 void binarySearchTree<KEY>::delete_less_than(const KEY &d, node *&t)
 {
@@ -175,10 +240,19 @@ void binarySearchTree<KEY>::delete_less_than(const KEY &d, node *&t)
         delete_less_than(d, t ->left);
     else
     {
-        clear(t ->left);
-        delete_less_than(d, t ->right);
-        pop(t);
+        node *tmp = t;
+        t = t ->right;
+        clear(tmp ->left);
+        delete tmp;
+        delete_less_than(d, t);
     }
+}
+
+
+template<class KEY>
+void binarySearchTree<KEY>::delete_greater_than(const KEY &d)
+{
+    delete_greater_than(d, root);
 }
 
 template<class KEY>
@@ -190,10 +264,18 @@ void binarySearchTree<KEY>::delete_greater_than(const KEY &d, node *&t)
         delete_greater_than(d, t ->right);
     else
     {
-        clear(t ->right);
-        delete_greater_than(d, t ->left);
-        pop(t);
+        node *tmp = t;
+        t = t ->left;
+        clear(tmp ->right);
+        delete tmp;
+        delete_greater_than(d, t);
     }
+}
+
+template<class KEY>
+void binarySearchTree<KEY>::delete_interval(const KEY &min, const KEY &max)
+{
+    if (min < max) delete_interval(min, max, root);
 }
 
 template<class KEY>
@@ -207,9 +289,8 @@ void binarySearchTree<KEY>::delete_interval(const KEY &min, const KEY &max, node
         delete_interval(min, max, t ->left);
     else
     {
-        delete_interval(min, max, t ->left);
-        delete_interval(min, max, t ->right);
-        pop(t);
+        pop(t ->dt, t);
+        delete_interval(min, max, t);
     }
 }
 
@@ -257,7 +338,7 @@ int main()
         else if (!strcmp(command, "find_ith"))
         {
             cin >> j;
-            tree.find_ith(i);
+            tree.find_ith(j);
         }
         else if(!strcmp(command, "delete_less_than"))
         {
