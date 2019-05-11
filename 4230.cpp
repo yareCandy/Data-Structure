@@ -10,13 +10,13 @@
 #include <cstring>
 using namespace std;
 
-//保存目前最大引用数的论文
-int maxTimes = 0;
-char maxTitle[150];
-
-struct node
+ 
+class citeTree
 {
-        char title[150];
+private:
+    struct node
+    {
+        char title[300];
         int times;
         node *left;
         node *right;
@@ -27,97 +27,89 @@ struct node
             right = r;
             times = 1;
         }
-        node ():left(nullptr), right(nullptr){}
-};
+        //node ():left(nullptr), right(nullptr){}
+    };
 
-class citeTree
-{
-private:
     node *root;
 public:
     citeTree():root(nullptr){}
     ~citeTree(){clear(root);}
-    void insert(const char a[]);
+    int insert(const char a[]);
 private:
     void clear(node *t);
-    void insert(const char a[], node * &t);
+    int insert(const char a[], node * &t);
 };
-
-int label = 0;
-
-void citeTree::insert(const char a[])
+ 
+int citeTree::insert(const char a[])
 {
-    insert(a, root);
+    return insert(a, root);
 }
-
-void citeTree::insert(const char title[], node * &t)
+ 
+int citeTree::insert(const char title[], node * &t)
 {
-    if (t == nullptr)
-    {
-        t = new node (title, nullptr, nullptr);
-        if (t ->times > maxTimes)
-        {
-            maxTimes = t ->times;
-            strcpy(maxTitle, t ->title);
-        }
-
-        else if(t ->times == maxTimes)
-            if (strcmp(t ->title, maxTitle) < 0)
-                strcpy(maxTitle, t ->title);
-    }
-
+    if (t == nullptr) {t = new node (title); return 1;}
     else if (strcmp(title, t ->title) > 0)
-        insert(title, t ->right);
+        return insert(title, t ->right);
     else if (strcmp(title, t ->title) < 0)
-        insert(title, t ->left);
-    else
-    {
-        t ->times ++;
-
-        if (t ->times > maxTimes)
-        {
-            maxTimes = t ->times;
-            strcpy(maxTitle, t ->title);
-        }
-
-        else if(t ->times == maxTimes)
-            if (strcmp(t ->title, maxTitle) < 0)
-                strcpy(maxTitle, t ->title);
-    }
+        return insert(title, t ->left);
+    else return ++t ->times;
 }
-
+ 
 void citeTree::clear(node *t)
 {
     if (t == nullptr) return;
-
+ 
     clear(t ->left);
     clear(t ->right);
     delete t;
 }
-
+ 
 int main()
 {
-    citeTree tree;
-    char command[10], title[150];
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
 
+    //保存目前最大引用数的论文
+    int i, times, maxTimes = 0;
+    char maxTitle[300];
+
+    citeTree tree;
+    char ch, command[10], title[300];
+ 
     while (true)
     {
-        scanf("%s", command);
+        cin >> command;
         cin.get();//丢掉空格
-
-        if (!strcmp(command, "cite"))
+ 
+        if (strcmp(command, "cite") == 0)
         {
-            fgets(title, 149, stdin);//接收标题
-            title[strlen(title)] = '\0';
-            tree.insert(title);
+            i = 0;//单1字符读入的效率！！！！！
+            //cin.getline(title, 150);//接收标题
+            while(true)
+            {
+                cin.get(ch);
+                if (ch == '\n') break;
+                else title[i++] = ch;
+            }
+            title[i] = '\0';
+            
+            times = tree.insert(title);
+
+            if (times > maxTimes)
+            {
+                maxTimes = times;
+                strcpy(maxTitle, title);
+            }
+            else if(times == maxTimes && strcmp(title, maxTitle) < 0)
+                strcpy(maxTitle, title);
         }
-
-        else if(!strcmp(command, "query"))
-            printf("%d %s", maxTimes, maxTitle);
-
-        else if (!strcmp(command, "finish"))
+ 
+        else if(strcmp(command, "query") == 0)
+            cout << maxTimes << ' ' << maxTitle << '\n';
+        else if (strcmp(command, "finish") == 0)
             break;
     }
-
+ 
     return 0;    
 }
