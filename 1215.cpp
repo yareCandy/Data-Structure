@@ -1,6 +1,9 @@
 //二项堆
-//贝努利树，用森岭保存一颗有序树
-//合并简单
+//实现一棵Bernoulli树。实现下列操作：
+//1.insert X，将整数X加入优先队列
+//2.delete，将优先队列中最小值弹出
+//3.min，输出最小值
+//初始优先队列为空。
 #include <iostream>
 #include <cmath>
 #include <cstring>
@@ -276,3 +279,130 @@ int main()
 
     return 0;
 }
+
+/*
+//基于二叉堆的优先队列的实现
+
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+class priorityQueue//使用顺序存储
+{
+private:
+    int *dt;
+    int maxSize;
+    int curSize;
+
+void doubleSpace();
+void buildHeap();
+void perDown(int i);
+
+public:
+    priorityQueue(int initSize = 100);
+    priorityQueue(const int a[], int size);
+    ~priorityQueue(){delete [] dt;}
+    void push(int d);
+    int pop();
+    bool empty(){return curSize == 0;}
+    int top(){return dt[1];}  
+}; // priorityQueue
+
+void priorityQueue::doubleSpace()
+{
+    int *tmp = dt;
+    maxSize *= 2;
+    dt = new int[maxSize];
+    for (int i = 0; i < curSize; i++)
+        dt[i] = tmp [i];
+    delete [] tmp;
+}
+
+void priorityQueue::buildHeap()
+{
+    for (int i = curSize/2; i > 0; i--)
+        perDown(i);
+}
+
+void priorityQueue::perDown(int i)
+{
+    int child;
+    int tmp = dt[i];
+
+    for (; i * 2 <= curSize; i = child)
+    {
+        child = i * 2;
+        if (child != curSize && dt[child] > dt[child+1])
+            child++;
+        if (dt[child] < tmp) dt[i] = dt[child];
+        else break;
+    }
+    dt[i] = tmp;
+}
+
+int priorityQueue::pop()
+{
+    int tmp = dt[1];
+    dt[1] = dt[curSize--];
+    perDown(1);
+    return tmp;
+}
+
+void priorityQueue::push(int d)
+{
+    if (curSize == maxSize - 1) doubleSpace();
+
+    int hole = ++curSize;
+
+    for (; hole > 1 && d < dt[hole/2]; hole /= 2)
+        dt[hole] = dt[hole/2];
+    dt[hole] = d;
+}
+
+priorityQueue::priorityQueue(int initSize)
+{
+    dt = new int [initSize];
+    maxSize = initSize;
+    curSize = 0;
+}
+
+priorityQueue::priorityQueue(const int a[], int size)
+{
+    dt = new int[size];
+    for (int i = 0; i < size; i++)
+        dt[i+1] = a[i];
+    curSize = size;
+    maxSize = size * 2;
+    buildHeap();
+}
+
+int main()
+{
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cout.tie(0);
+
+    int N, value; char ch[10];
+    cin >> N;
+    priorityQueue que(20004);
+
+    for (int i = 0; i < N; i++)
+    {
+        cin >> ch;
+
+        if (!strcmp(ch, "insert"))
+        {
+            cin >> value;
+            que.push(value);
+        }
+        else if (!strcmp(ch, "delete"))
+            que.pop();
+        else if (!strcmp(ch, "min"))
+            cout << que.top() << '\n';
+        cin.get();
+
+    }
+    return 0;
+}
+
+*/
