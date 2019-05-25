@@ -9,6 +9,7 @@
 //这使得AVL树在最坏的情况下依然可以以log(N)的复杂度工作
 
 #include <iostream>
+#include <cstring>
 using namespace std;
 
 template<class KEY, class OTHER>
@@ -43,7 +44,7 @@ public:
 
 private:
     void insert(const SET<KEY, OTHER> &d, AvlNode * &t);
-    void remove(const KEY &d, AvlNode * &t);
+    bool remove(const KEY &d, AvlNode * &t);
     void clear(AvlNode *t);//为什么不用引用
     int height(AvlNode *t)const {return t == nullptr ? 0 : t ->height;}
     void LL(AvlNode * &t);//左子树的左孩子插入导致失衡 //指针的引用，确保所有操作在原地址进行
@@ -53,6 +54,7 @@ private:
     int max(int a, int b){return a > b ? a : b;}
     bool adjust(AvlNode * &t, int subTree);
 };
+
 
 template<class KEY, class OTHER>
 SET<KEY, OTHER> *AvlTree<KEY, OTHER>::find(const KEY &d)const
@@ -72,12 +74,6 @@ template<class KEY, class OTHER>
 void AvlTree<KEY, OTHER>::insert(const SET<KEY, OTHER> &d)
 {
     inert(d, root);
-}
-
-template <class KEY, class OTHER>
-void AvlTree<KEY, OTHER>::remove(const KEY &d)
-{
-    remove(d, root);
 }
 
 //私有插入函数
@@ -108,4 +104,128 @@ void AvlTree<KEY, OTHER>::insert(const SET<KEY, OTHER> &d, AvlNode * &t)
     t ->height = max(t ->left, t ->right) + 1;
 }
 
+
+template<class KEY, class OTHER>
+void AvlTree<KEY, OTHER>::LL(AvlNode *&t)
+{
+    AvlNode *t1 = t ->left;
+    t ->left = t1 ->left;
+    t1 ->right = t;
+    t ->height = max(height(t ->left), height(t ->right)) + 1;
+    t1 ->height = max(height(t1 ->left), height(t1 ->right)) + 1;
+    t = t1;
+}
+
+template<class KEY, class OTHER>
+void AvlTree<KEY, OTHER>::RR(AvlNode *&t)
+{
+    AvlNode *t1 = t ->right;
+    t ->right = t1 ->right;
+    t1 ->left = t;
+    t ->height = max(height(t ->left), height(t ->right)) + 1;
+    t1 ->height = max(height(t1 ->left), height(t1 ->right)) + 1;
+    t = t1;
+}
+
+template<class KEY, class OTHER>
+void AvlTree<KEY, OTHER>::LR(AvlNode *&t)
+{
+    RR(t ->left);
+    LL(t);
+}
+
+template<class KEY, class OTHER>
+void AvlTree<KEY, OTHER>::RL(AvlNode *&t)
+{
+    LL(t ->right);
+    RR(t);
+}
+
+template<class KEY, class OTHER>
+void AvlTree<KEY, OTHER>::clear(AvlNode *t)
+{
+    if (t == nullptr) return;
+    
+    clear(t ->left);
+    clear(t ->right);
+    delete t;
+}
+
+
+template <class KEY, class OTHER>
+void AvlTree<KEY, OTHER>::remove(const KEY &d)
+{
+    remove(d, root);
+}
+
+template<class KEY, class OTHER>
+bool AvlTree<KEY, OTHER>::remove(const KEY &d, AvlNode *&t)
+{
+    if (t == nullptr) return;
+    if (d == t ->dt.key)
+    {
+        if (t ->left == nulptr || t ->right == nullptr)
+        {
+            AvlNode *oldNode = t;
+            t = (t ->left != nullptr) ? t ->left : t ->right;
+            delete oldNode;
+            return false;
+        }
+        else
+        {
+            AvlNode *tmp = t ->right;
+            while (tmp ->left != nullptr) tmp = tmp ->left;
+            t ->dt = tmp ->dt;
+            if (remove(tmp ->dt.key, t ->right))) return true;
+            return adjust(t, 1);
+        }
+    }
+
+    if (d < t ->dt.key)
+    {
+        if (remove(d, t ->left)) return true;
+        return adjust(t, 0);
+    }
+    else
+    {
+        if (remove(x, t ->right)) return true;
+        return adjust(t, 1);
+    }
+}
+
+template<class KEY, class OTHER>
+bool AvlTree<KEY, OTHER>::adjust(AvlNode *&t, int subTree)
+{
+    if (subTree) 
+    {
+        if (height(t ->left) - height(t ->right) == 1) return ture;
+        if (height(t ->rihgt) == height(t ->left))
+        {
+            --t ->height; return false;
+        }
+        if (height(t ->left ->right) > height(t ->left ->right))
+        {
+            LR(t); return false;
+        }
+        LL(t);
+        if (height(t ->right) == height(t ->left)) return false;
+        else return true;
+    }
+    else
+    {
+        if (height(t ->left) - height(t ->right) == -1) return ture;
+        if (height(t ->rihgt) == height(t ->left))
+        {
+            --t ->height; return false;
+        }
+        if (height(t ->right ->right) < height(t ->right ->left))
+        {
+            RL(t); return false;
+        }
+        RR(t);
+        if (height(t ->right) == height(t ->left)) return false;
+        else return true;
+    }
+       
+}
 

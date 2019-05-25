@@ -35,13 +35,36 @@ public:
     SET<KEY, VALUE> *find(const KEY &d)const;
     void insert(const SET<KEY, VALUE> &d);
     void remove(const KEY &d);
-
+    bool isBSTree()const;
+    bool isBSTree(node *t, int &min, int &max)const;
+    void searchK(int i){searchK(i, root);};
+    void searchK(int &i, node *t);
+    void midOrder(){midOrder(root);}
+    void midOrder(node *t);
 private:
     void insert(const SET<KEY, VALUE> &d, node * &t);
     void remove(const KEY &d, node *&t);
     SET<KEY, VALUE> *find(const KEY &d, node *t)const;
     void clear(node *t);
 };
+
+template<class KEY, class VALUE>
+void binarySearchTree<KEY, VALUE>::midOrder(node *t)
+{
+    if (t == nullptr) return;
+    midOrder(t ->left);
+    cout << t ->dt.key << " ";
+    midOrder(t ->right);
+}
+
+template<class KEY, class VALUE>
+void binarySearchTree<KEY, VALUE>::searchK(int &i, node *t)
+{
+    if (t == nullptr) return;
+    searchK(i, t ->left);
+    if (--i == 0) {cout << t ->dt.key << endl; return;}
+    searchK(i, t ->right);
+}
 
 template<class KEY, class VALUE>
 SET<KEY, VALUE> *binarySearchTree<KEY, VALUE>::find(const KEY &d)const
@@ -117,6 +140,48 @@ void binarySearchTree<KEY, VALUE>::remove(const KEY &d, node *&t)
 
 
 template<class KEY, class VALUE>
+bool binarySearchTree<KEY, VALUE>::isBSTree()const
+{
+    if (root == nullptr) return true;
+    bool flag;
+    KEY min, max;
+
+    if (root ->left != nullptr)
+    {
+        flag = isBSTree(root ->left, min, max);
+        if (!flag || max > root ->dt.key) return false;
+    }
+    if (root ->right != nullptr)
+    {
+        flag = isBSTree(root ->right, min, max);
+        if(!flag || min < root ->dt.key) return false;
+    }
+
+    return true;
+}
+
+template<class KEY, class VALUE>
+bool binarySearchTree<KEY, VALUE>::isBSTree(node *t, int &min, int &max)const
+{  
+    KEY mint, maxt;
+    bool flag;
+
+    if (t ->left)
+    {
+        flag = isBSTree(t ->left, min, maxt);
+        if(!flag || maxt > t ->dt.key) return false;
+    }
+    if (t ->right)
+    {
+        flag = isBSTree(t ->right, mint, max);
+        if (!flag || mint < t ->dt.key) return false;
+    }
+
+    else max = t ->dt;
+    return true;
+}
+
+template<class KEY, class VALUE>
 void binarySearchTree<KEY, VALUE>::clear(node *t)
 {
     if (t == nullptr) return;
@@ -128,21 +193,17 @@ void binarySearchTree<KEY, VALUE>::clear(node *t)
 
 int main()
 {
-    SET<int, char*> a[] = {{10, "aaa"}, {8, "bbb"}, {2, "ccc"}};
-    binarySearchTree<int,char *> tree;
-    SET<int, char*> x;
-    SET<int, char*> *p;
+    SET<int, int> a[10];
+    binarySearchTree<int,int> tree;
 
-    for (int i = 0; i < 3; i++) tree.insert(a[i]);
+    for (int i = 0; i < 10; i++)
+    {
+        a[i].key = i;
+        a[i].value = i;
+        tree.insert(a[i]);
+    }
 
-    p = tree.find(10);
-    if (p) cout << "find 10 is " << p ->key << " " << p ->value << endl;
-    else cout << "not found" << endl;
-
-    tree.remove(10);
-    p = tree.find(10);
-    if (p) cout << "find 10 is " << p ->key << " " << p ->value << endl;
-    else cout << "not found" << endl;
+    tree.searchK(8);
 
     return 0;
 }

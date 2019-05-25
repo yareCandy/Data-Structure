@@ -1,362 +1,249 @@
-//1221.cpp
-//二叉查找树的相关操作
-//插入、删除
-//删除比x小的元素，比min大，比max小的元素
-//查找第i小的元素
-#include <iostream>
 #include <cstring>
-//#include <stack>
+#include <iostream>
+
 using namespace std;
 
-template <class T>
-class linkStack
-{
-    private:
-        struct node
-        {
-            T data;
-            node *next;
-            node (const T &x, node *n = NULL):data(x), next(n){};
-            node():next(NULL){};
-        };
+int findN;
+bool flag;
 
-        node *top_p;
+class BinarySearchTree {
+    struct Node {
+        int data;
+        Node *left;
+        Node *right;
 
-    public:
-        linkStack():top_p(NULL){};
-        ~linkStack()
-        {
-            node *p;
-            while(top_p != NULL)
-            {
-                p = top_p;
-                top_p = top_p ->next;
-                delete p;
+        Node(int x = 0, Node *l = 0, Node *r = 0)
+            : data(x), left(l), right(r) {}
+
+        Node &operator=(Node &other) {
+            if (&other != this) {
+                data = other.data;
+                left = other.left;
+                right = other.right;
+            }
+
+            return *this;
+        }
+    };
+
+    Node *root;
+    int sum;
+    void clear(Node *&rhs);
+    void insert(int x, Node *&rhs);
+    bool find(int x, Node *&rhs);
+    void find_ith(int x, Node *&rhs);
+    void deleteNode(int x, Node *&rhs);
+    void deleteLess(int x, Node *&rhs);
+    void deleteGreater(int x, Node *&rhs);
+    void deleteInterval(int low, int high, Node *&rhs);
+
+   public:
+    BinarySearchTree() : root(0), sum(0) {}
+    ~BinarySearchTree() { clear(root); }
+    void insert(int x) { insert(x, root); }
+    bool find(int x) { return find(x, root); }
+    void find_ith(int pos) {
+        if (pos > sum) {
+            flag = 0;
+            return;
+        }
+        flag = 0;
+        findN = 0;
+        find_ith(pos, root);
+    }
+    void deleteEqual(int x) {
+        deleteNode(x, root);
+        if (sum == 0) {
+            root = NULL;
+        }
+    }
+    void deleteLess(int x) {
+        deleteLess(x, root);
+        if (sum == 0) {
+            root = NULL;
+        }
+    }
+    void deleteGreater(int x) {
+        deleteGreater(x, root);
+        if (sum == 0) {
+            root = NULL;
+        }
+    }
+    void deleteInterval(int low, int high) {
+        deleteInterval(low, high, root);
+        if (sum == 0) {
+            root = NULL;
+        }
+    }
+};
+
+void BinarySearchTree::clear(Node *&rhs) {
+    if (rhs == 0) {
+        return;
+    } else {
+        clear(rhs->left);
+        clear(rhs->right);
+        delete rhs;
+        sum--;
+    }
+}
+
+void BinarySearchTree::insert(int x, Node *&rhs) {
+    if (rhs == 0) {
+        sum++;
+        rhs = new Node(x);
+    } else if (x <= rhs->data) {
+        insert(x, rhs->left);
+    } else {
+        insert(x, rhs->right);
+    }
+}
+
+bool BinarySearchTree::find(int x, Node *&rhs) {
+    if (rhs == 0) {
+        return 0;
+    } else if (rhs->data == x) {
+        return true;
+    } else if (x < rhs->data) {
+        return find(x, rhs->left);
+    } else {
+        return find(x, rhs->right);
+    }
+}
+void BinarySearchTree::find_ith(int x, Node *&rhs) {
+    if (findN > x) {
+        return;
+    }
+    if (rhs->left != 0) {
+        find_ith(x, rhs->left);
+    }
+    if (x == ++findN) {
+        cout << rhs->data << '\n';
+        flag = 1;
+        return;
+    }
+    if (rhs->right != 0) {
+        find_ith(x, rhs->right);
+    }
+}
+
+void BinarySearchTree::deleteNode(int x, Node *&rhs) {
+    if (rhs == 0) {
+        return;
+    }
+    if (x < rhs->data) {
+        deleteNode(x, rhs->left);
+    } else if (x > rhs->data) {
+        deleteNode(x, rhs->right);
+    } else if (rhs->left != 0 && rhs->right != 0) {
+        Node *p = rhs->right;
+        while (p->left != 0) {
+            p = p->left;
+        }
+        rhs->data = p->data;
+        deleteNode(rhs->data, rhs->right);
+    } else {
+        Node *clean = rhs;
+        rhs = (rhs->left != 0) ? rhs->left : rhs->right;
+        delete clean;
+        sum--;
+    }
+}
+
+void BinarySearchTree::deleteLess(int x, Node *&rhs) {
+    if (rhs == 0) {
+        return;
+    }
+    while (rhs != 0 && x > rhs->data) {
+        clear(rhs->left);
+        Node *temp = rhs->right;
+        delete rhs;
+        rhs = temp;
+        sum--;
+    }
+    if (rhs != 0 && x <= rhs->data) {
+        deleteLess(x, rhs->left);
+    }
+}
+
+void BinarySearchTree::deleteGreater(int x, Node *&rhs) {
+    if (rhs == 0) {
+        return;
+    }
+    while (rhs != 0 && x < rhs->data) {
+        clear(rhs->right);
+        Node *temp = rhs->left;
+        delete rhs;
+        rhs = temp;
+        sum--;
+    }
+    if (rhs != 0 && x >= rhs->data) {
+        deleteGreater(x, rhs->right);
+    }
+}
+
+void BinarySearchTree::deleteInterval(int low, int high, Node *&rhs) {
+    if (low >= high || rhs == 0) {
+        return;
+    }
+    while (rhs != 0 && rhs->data < high && rhs->data > low) {
+        deleteNode(rhs->data, rhs);
+    }
+
+    if (rhs != 0 && rhs->data >= high) {
+        deleteInterval(low, high, rhs->left);
+    }
+
+    if (rhs != 0 && rhs->data <= low) {
+        deleteInterval(low, high, rhs->right);
+    }
+}
+
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+
+    BinarySearchTree bst;
+    char order[100] = {0};
+    int n1, n2;
+    int times = 0;
+
+    cin >> times;
+
+    for (int i = 0; i < times; i++) {
+        cin >> order;
+
+        if (!strcmp(order, "insert")) {
+            cin >> n1;
+            bst.insert(n1);
+        } else if (!strcmp(order, "delete")) {
+            cin >> n1;
+            bst.deleteEqual(n1);
+        } else if (!strcmp(order, "delete_less_than")) {
+            cin >> n1;
+            bst.deleteLess(n1);
+        } else if (!strcmp(order, "delete_greater_than")) {
+            cin >> n1;
+            bst.deleteGreater(n1);
+        } else if (!strcmp(order, "delete_interval")) {
+            cin >> n1 >> n2;
+            bst.deleteInterval(n1, n2);
+        } else if (!strcmp(order, "find")) {
+            cin >> n1;
+            bool flag = bst.find(n1);
+            if (flag == 1) {
+                cout << "Y" << '\n';
+            } else {
+                cout << "N" << '\n';
+            }
+        } else if (!strcmp(order, "find_ith")) {
+            cin >> n1;
+            bst.find_ith(n1);
+            if (!flag) {
+                cout << "N\n";
             }
         }
-        T pop()
-        {
-            node *tmp = top_p;
-            T x = top_p -> data;
-            top_p = top_p -> next;
-            delete tmp;
-            return x;
-        }
-        void push(const T &x)
-        {
-            node *tmp = new node(x, top_p);
-            top_p = tmp;
-        }
-        T top()const{ return top_p -> data;}
-
-        bool isEmpty()const {return top_p == NULL;}
-};
-
-template <class KEY>
-class binarySearchTree
-{
-private:
-    struct node
-    {
-        KEY dt;
-        node *left;
-        node *right;
-        node (const KEY &d, node *l = nullptr, node *r = nullptr)
-            :dt(d), left(l), right(r){}
-        node():left(nullptr), right(nullptr){}
-    };
-
-    node *root;
-
-public:
-    binarySearchTree():root(nullptr){}
-    ~binarySearchTree(){clear(root);}
-    bool empty()const {return root == nullptr;}
-    void push(const KEY &d);
-    void pop(const KEY &d);
-    void delete_less_than(const KEY &d);
-    void delete_greater_than(const KEY &d);
-    void delete_interval(const KEY &min, const KEY &max);
-    void find(const KEY &d)const;
-    void find_ith(int i)const;
-
-
-private:
-    void push(const KEY &d, node *&t);
-    void pop(const KEY &d, node *& t);
-    void delete_less_than(const KEY &d, node *&t);
-    void delete_greater_than(const KEY &d, node *&t);
-    void delete_interval(const KEY &min, const KEY &max, node *&t);
-
-private:
-    void clear(node *t);
-};
-
-
-template<class KEY>
-void binarySearchTree<KEY>::pop(const KEY &d)
-{
-    pop(d ,root);
-}
-
-template <class KEY>
-void binarySearchTree<KEY>::push(const KEY &d)
-{
-    push(d, root);
-}
-
-template<class KEY>
-void binarySearchTree<KEY>::push(const KEY &d, node *&t)
-{
-    if (t == nullptr)
-        t = new node (d, nullptr, nullptr);
-    else if (d < t ->dt)
-        push(d, t ->left);
-    else
-        push(d, t ->right);
-}
-
-template<class KEY>
-void binarySearchTree<KEY>::pop(const KEY &d, node *&t)
-{
-    if (t == nullptr) return;
-
-    if (d < t ->dt)
-        pop(d, t ->left);
-    else if (d > t ->dt)
-        pop(d, t ->right);
-    else
-    {
-        if (t ->left != nullptr && t ->right != nullptr)
-        {
-            node *tmp = t ->right;
-            while (tmp ->left != nullptr)
-                tmp = tmp ->left;
-            t ->dt = tmp ->dt;
-            pop(t ->dt, t ->right);//这里要求是继续对右子树进行删除操作，tmp已经不是指向t的右子树了
-        }
-        else
-        {
-            node *tmp = t;
-            t  =  (t ->left == nullptr) ? t ->right : t ->left;
-            delete tmp;
-        }
-    }
-}
-
-
-template<class KEY>
-void binarySearchTree<KEY>::find(const KEY &d)const
-{
-    if (root == nullptr) {cout << "N\n"; return;}
-
-    linkStack<node *> stack;
-    stack.push(root);
-    node *tmp;
-
-    while (!stack.isEmpty())
-    {
-        tmp = stack.pop();
-
-        if (tmp == nullptr)
-        {
-            cout << "N\n";
-            return;
-        }
-
-        if (d == tmp ->dt)
-        {
-            cout << "Y\n";
-            return;
-        }
-        else if (d < tmp ->dt)
-            stack.push(tmp ->left);
-        else
-            stack.push(tmp ->right);
-    }
-    cout << "N\n";
-    return;
-
-}
-
-//已排除
-template<class KEY>
-void binarySearchTree<KEY>::find_ith(int i)const
-{
-    if (root == nullptr) {cout << "N\n"; return;}
-
-    struct Node
-    {
-        node *t;
-        int timePop;
-        Node (node *T = nullptr):t(T), timePop(0){}
-    };
-
-    linkStack<Node> stack;
-    Node current(root);
-    stack.push(current);
-
-    while (!stack.isEmpty())
-    {
-        current = stack.pop();
-
-        if (++current.timePop == 2)
-        {
-            i--;
-            if (current.t ->right != nullptr)
-                stack.push(Node(current.t ->right));
-        }
-        else
-        {
-            stack.push(current);
-            if (current.t ->left != nullptr)
-                stack.push(Node(current.t ->left));
-        }
-
-        if (i == 0)
-        {
-            cout << current.t ->dt << "\n";
-            return;
-        }
-    }
-
-    cout << "N\n";
-    return;
-}
-
-
-template<class KEY>
-void binarySearchTree<KEY>::delete_less_than(const KEY &d)
-{
-    delete_less_than(d, root);
-}
-
-template<class KEY>
-void binarySearchTree<KEY>::delete_less_than(const KEY &d, node *&t)
-{
-    if (t == nullptr) return;
-
-    if (d <= t ->dt)
-        delete_less_than(d, t ->left);
-    else
-    {
-        node *tmp = t;
-        t = t ->right;
-        clear(tmp ->left);
-        delete tmp;
-        delete_less_than(d, t);
-    }
-}
-
-
-template<class KEY>
-void binarySearchTree<KEY>::delete_greater_than(const KEY &d)
-{
-    delete_greater_than(d, root);
-}
-
-template<class KEY>
-void binarySearchTree<KEY>::delete_greater_than(const KEY &d, node *&t)
-{
-    if (t == nullptr) return;
-
-    if (d >= t ->dt)
-        delete_greater_than(d, t ->right);
-    else
-    {
-        node *tmp = t;
-        t = t ->left;
-        clear(tmp ->right);
-        delete tmp;
-        delete_greater_than(d, t);
-    }
-}
-
-template<class KEY>
-void binarySearchTree<KEY>::delete_interval(const KEY &min, const KEY &max)
-{
-    if (min < max) delete_interval(min, max, root);
-}
-
-template<class KEY>
-void binarySearchTree<KEY>::delete_interval(const KEY &min, const KEY &max, node *&t)
-{
-    if (t == nullptr) return;
-
-    if (min >= t ->dt)
-        delete_interval(min, max, t ->right);
-    else if (max <= t ->dt)
-        delete_interval(min, max, t ->left);
-    else
-    {
-        pop(t ->dt, t);
-        delete_interval(min, max, t);
-    }
-}
-
-template<class KEY>
-void binarySearchTree<KEY>::clear(node *t)
-{
-    if (t == nullptr) return;
-
-    clear(t ->left);
-    clear(t ->right);
-    delete t;
-}
-
-
-int main()
-{
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-
-    char command[30];
-    int N, j, k;
-    cin >> N;
-
-    binarySearchTree<int> tree;
-
-    for (int i = 0; i < N; i++)
-    {
-        cin >> command;
-
-        if (!strcmp(command, "insert"))
-        {
-            cin >> k;
-            tree.push(k);
-        }
-        else if (!strcmp(command, "delete"))
-        {
-            cin >> j;
-            tree.pop(j);
-        }
-        else if (!strcmp(command, "find"))
-        {
-            cin >> k;
-            tree.find(k);
-        }
-        else if (!strcmp(command, "find_ith"))
-        {
-            cin >> j;
-            tree.find_ith(j);
-        }
-        else if(!strcmp(command, "delete_less_than"))
-        {
-            cin >> k;
-            tree.delete_less_than(k);
-        }
-        else if(!strcmp(command, "delete_greater_than"))
-        {
-            cin >> j;
-            tree.delete_greater_than(j);
-        }
-        else if (!strcmp(command, "delete_interval"))
-        {
-            cin >> j >> k;
-            tree.delete_interval(j, k);
-        }
-
-        cin.get();
     }
 
     return 0;
