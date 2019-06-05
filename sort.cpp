@@ -191,3 +191,21 @@ int bin_search(int a[], int left, int right, int d)
     }
     return -1;
 }
+
+//========================快速排序的应用====================================
+//对一个N个元素的数组，确定是否有两个元素和为指定值，输出全部的可能解
+
+void nLogN(int a[], int size, int k)
+{
+    quick_sort(a, 0, size-1);
+
+    int j = size -1, i =0;
+    while (i < j)
+    {
+        if (a[i] + a[j] == k)
+            cout << a[i++] << " " << a[j--] << '\n';
+        else if (a[i] + a[j] < k)
+            i++;
+        else j--;
+    }
+}
